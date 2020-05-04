@@ -7,15 +7,14 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 
-
 import 'package:http/http.dart' as http;
+import 'package:virtual_assistant/loginscreen.dart';
 
 import 'User.dart';
 import 'message.dart';
 
 class ChatScreen extends StatefulWidget {
   static String id = "chat_screen";
-
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -27,7 +26,6 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-
     initSpeechState();
   }
 
@@ -103,78 +101,44 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   var messageText;
-/**
-  void agentResponse(query) async {
-    AuthGoogle authGoogle =
-        await AuthGoogle(fileJson: "assets/newagent-pyuavn-92b986d8472e.json")
-            .build();
-    Dialogflow dialogflow =
-        Dialogflow(authGoogle: authGoogle, language: Language.english);
-    AIResponse response = await dialogflow.detectIntent(query);
-    MessageBubble messageBubble = MessageBubble(
-    sender: "Bot",
-    text: response.getMessage().toString(),
-    isMe: false,
+
+  void agentResponse(query, username, token) async {
+    Map data2 = {'message': query,
+    'username':username};
+
+    String body2 = json.encode(data2);
+    print(body2);
+
+    http.Response response2 = await http.post(
+      'http://chatbot-server4800.herokuapp.com/messages',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        //"sessionId": "99a39eea-bdda-40ea-b6bd-d 79be31dd434",
+        'Authorization':
+            'Bearer ' + token
+      },
+      body: body2,
     );
+    print("response2 " + response2.body.toString());
+    print(token);
+    var message = Message.fromJson(json.decode(response2.body));
+    print(message.message.toString());
+
+    MessageBubble messageBubble = MessageBubble(
+      sender: "Bot",
+      text: message.message.toString(),
+      isMe: false,
+    );
+
     setState(() {
-    _messages.insert(0, messageBubble);
+      _messages.insert(0, messageBubble);
     });
   }
-*/
-
-  void agentResponse (query) async{
-  /**Map data = {
-    'username': 'diane', //use any username must be unique
-    'password': 'helloworld'
-  };
-
-  String body = json.encode(data);
-
-  http.Response response = await http.post(
-    'http://chatbot-server4800.herokuapp.com/users/login',
-    headers: {"Content-Type": "application/json"},
-    body: body,
-  );
-
-  print("response1 "+ response.body);
-
-  var user = User.fromJson(json.decode(response.body));
-  //var user = User.fromJson(jsonDecode(response.body));
-*/
-  Map data2 = {
-    'message': query
-  };
-
-  String body2 = json.encode(data2);
-
-  http.Response response2 = await http.post(
-    'http://chatbot-server4800.herokuapp.com/messages',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZTliNWQ0MTI1YzRlNzAwMTdmN2IyYzgiLCJpYXQiOjE1ODcyNDAyNTd9.jkZ9bnYCnNkF-EeGybABuuY1SOugW0E0Q8cfK-HMqCw'},
-    body: body2,
-  );
-  print("response2 "+ response2.body.toString());
-
-  var message = Message.fromJson(json.decode(response2.body));
-  print(message.message.toString());
-
-  MessageBubble messageBubble = MessageBubble(
-    sender: "Bot",
-    text: message.message.toString(),
-    isMe: false,
-  );
-
-  setState(() {
-    _messages.insert(0, messageBubble);
-  });
-
-}
-
 
   @override
   Widget build(BuildContext context) {
+    String token = ModalRoute.of(context).settings.arguments;
     return MaterialApp(
       home: Scaffold(
         body: Container(
@@ -222,7 +186,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             _messages.insert(0, message);
                           });
 
-                          agentResponse(messageText);
+                          agentResponse(messageText, usernameController.text, token);
                           textEditingController.clear();
                         }
                       },
@@ -236,7 +200,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
                       child: Icon(Icons.mic),
                     ),
-
                   ],
                 )
               ],

@@ -5,18 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:virtual_assistant/chat_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:virtual_assistant/response.dart';
+import 'package:virtual_assistant/error.dart';
 
 import 'User.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
   final String title;
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -24,6 +18,8 @@ class MyHomePage extends StatefulWidget {
 
 final usernameController = TextEditingController();
 final passwordController = TextEditingController();
+bool loginFailed = false;
+String nullmessage;
 
 class _MyHomePageState extends State<MyHomePage> {
   TextStyle style = TextStyle(fontSize: 20.0);
@@ -35,16 +31,18 @@ class _MyHomePageState extends State<MyHomePage> {
       obscureText: false,
       style: style,
       decoration: InputDecoration(
+        errorText: loginFailed? '': null,
           contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
           hintText: "Username",
           border:
               OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
     );
-    final passwordField = TextField(
+    final passwordField = TextFormField(
       controller: passwordController,
       obscureText: true,
       style: style,
       decoration: InputDecoration(
+          errorText: loginFailed? nullmessage: null,
           contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
           hintText: "Password",
           border:
@@ -58,14 +56,19 @@ class _MyHomePageState extends State<MyHomePage> {
         minWidth: MediaQuery.of(context).size.width,
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
         onPressed: () async {
-          bool loginResponse =
+          Response loginResponse =
               await login(usernameController.text, passwordController.text);
-          if (loginResponse) {
+          if (loginResponse != null) {
             print("successful logged in");
-            Navigator.pushNamed(context, ChatScreen.id);
+            loginFailed = false;
+            print(loginResponse.token);
+            Navigator.pushNamed(context, ChatScreen.id, arguments: loginResponse.token);
           } else {
-            print("not successful login");
+            print("login failed....");
+            loginFailed = true;
           }
+          setState(() {
+          });
         },
         child: Text("Login",
             textAlign: TextAlign.center,
@@ -81,14 +84,20 @@ class _MyHomePageState extends State<MyHomePage> {
         minWidth: MediaQuery.of(context).size.width,
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
         onPressed: () async {
-          bool signupResponse =
+          Response signupResponse =
               await signup(usernameController.text, passwordController.text);
-          if (signupResponse) {
+          if (signupResponse!= null) {
             print("successful signup");
-            Navigator.pushNamed(context, ChatScreen.id);
+            print(signupResponse.token);
+            loginFailed = false;
+            Navigator.pushNamed(context, ChatScreen.id, arguments: signupResponse.token);
           } else {
-            print("not successful");
+            print("signup failed");
+            loginFailed = true;
           }
+          setState(() {
+
+          });
         },
         //{print(usernameController.text + passwordController.text);},
         child: Text("Sign up",
@@ -97,6 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
+
 
     return Scaffold(
       body: Center(
@@ -109,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(
-                  height: 100.0,
+                  height: 85.0,
                   child: Image.asset(
                     "assets/06-512.png",
                     fit: BoxFit.contain,
@@ -136,54 +146,50 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-//add comment
-  //add comment
-  //add comment
-  //add comment
-
-  Future<bool> signup(usernameController, passwordController) async {
-    print('hello');
-    Map data = {
-      'username': usernameController, //use any username must be unique
-      'password': passwordController
-    };
-    String body = json.encode(data);
-    http.Response response = await http.post(
-      'http://chatbot-server4800.herokuapp.com/users/login',
-      headers: {"Content-Type": "application/json"},
-      body: body,
-    );
-    print("response1 " + response.body);
-
-    var responseCode = Response.fromJson(json.decode(response.body));
-
-    if (responseCode.responseCode == 200) {
-      return Future.value(true);
-    } else
-      return Future.value(false);
+  Future <Response> signup(usernameController, passwordController) async {
+    try {
+      Map data = {
+        'username': usernameController, //use any username must be unique
+        'password': passwordController
+      };
+      String body = json.encode(data);
+      http.Response response = await http.post(
+        'http://chatbot-server4800.herokuapp.com/users/login',
+        headers: {"Content-Type": "application/json"},
+        body: body,
+      );
+      print("response1 " + response.body);
+      var error = responseError.fromJson(json.decode(response.body));
+      nullmessage = error.message;
+      return Response.fromJson(json.decode(response.body));
+    }catch(Exception){
+      return null;
+    }
   }
 
-  Future<bool> login(usernameController, passwordController) async {
-    Map data2 = {
-      'username': usernameController, //use any username must be unique
-      'password': passwordController
-    };
-    String body2 = json.encode(data2);
-    http.Response loginResponse = await http.post(
-      'http://chatbot-server4800.herokuapp.com/users/reAuthenticate',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: body2,
-    );
-    print("response2 " + loginResponse.body.toString());
-    var responseCode = Response.fromJson(json.decode(loginResponse.body));
+  Future<Response> login(usernameController, passwordController) async {
+    try {
+      Map data2 = {
+        'username': usernameController, //use any username must be unique
+        'password': passwordController
+      };
+      String body2 = json.encode(data2);
+      http.Response loginResponse = await http.post(
+        'http://chatbot-server4800.herokuapp.com/users/reAuthenticate',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: body2,
+      );
+      print("response2 " + loginResponse.body.toString());
+      var error = responseError.fromJson(json.decode(loginResponse.body));
+      nullmessage = error.message;
+      return Response.fromJson(json.decode(loginResponse.body));
 
-    //Response.fromJson(json.decode(response.body));
-    if (responseCode.responseCode == 200) {
-      return Future.value(true);
-    } else
-      return Future.value(false);
+    }catch(Exception){
+      return null;
+    }
+
   }
 }
