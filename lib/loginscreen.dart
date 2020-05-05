@@ -116,31 +116,33 @@ class _MyHomePageState extends State<MyHomePage> {
           color: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(36.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                SizedBox(
-                  height: 85.0,
-                  child: Image.asset(
-                    "assets/06-512.png",
-                    fit: BoxFit.contain,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  SizedBox(
+                    height: 85.0,
+                    child: Image.asset(
+                      "assets/06-512.png",
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                ),
-                SizedBox(height: 30.0),
-                usernameField,
-                SizedBox(height: 20.0),
-                passwordField,
-                SizedBox(
-                  height: 20.0,
-                ),
-                loginButon,
-                SizedBox(height: 5.0),
-                signupButon,
-                SizedBox(
-                  height: 1.0,
-                ),
-              ],
+                  SizedBox(height: 30.0),
+                  usernameField,
+                  SizedBox(height: 20.0),
+                  passwordField,
+                  SizedBox(
+                    height: 20.0,
+                  ),
+                  loginButon,
+                  SizedBox(height: 5.0),
+                  signupButon,
+                  SizedBox(
+                    height: 1.0,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
