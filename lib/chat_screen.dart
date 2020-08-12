@@ -15,6 +15,7 @@ import 'message.dart';
 
 class ChatScreen extends StatefulWidget {
   static String id = "chat_screen";
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -103,8 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
   var messageText;
 
   void agentResponse(query, username, token) async {
-    Map data2 = {'message': query,
-    'username':username};
+    Map data2 = {'message': query, 'username': username};
 
     String body2 = json.encode(data2);
     print(body2);
@@ -115,8 +115,7 @@ class _ChatScreenState extends State<ChatScreen> {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         //"sessionId": "99a39eea-bdda-40ea-b6bd-d 79be31dd434",
-        'Authorization':
-            'Bearer ' + token
+        'Authorization': 'Bearer ' + token
       },
       body: body2,
     );
@@ -186,7 +185,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             _messages.insert(0, message);
                           });
 
-                          agentResponse(messageText, usernameController.text, token);
+                          agentResponse(
+                              messageText, usernameController.text, token);
                           textEditingController.clear();
                         }
                       },
